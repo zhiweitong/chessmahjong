@@ -1,1 +1,1 @@
-# ChessMahjong
+# 象棋麻將
