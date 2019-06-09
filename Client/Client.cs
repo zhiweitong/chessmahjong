@@ -2,17 +2,24 @@
 using System.Net.Sockets;
 using System.Text;
 using System.Net;
+using System.Collections.Generic;
 
 namespace Client
 {
     class Client
     {
         private Socket _socket;
+        private Dictionary<string, string> _dictionary = new Dictionary<string, string>();
 
         static void Main(string[] args)
         {
             Client program = new Client();
+            program.CreateDictionary(); //建立字典
+
             program.Connect();
+            
+
+            Console.WriteLine(program.Receive());
 
             Console.ReadKey();
         }
@@ -25,6 +32,8 @@ namespace Client
                 _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
                 _socket.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8888));
+
+                Console.WriteLine("連線成功");
             }
             catch
             {
@@ -46,9 +55,25 @@ namespace Client
                 IntAcceptData = _socket.Receive(clientData);
 
                 string message = Encoding.Default.GetString(clientData);
+                string tile = message.Substring(8);
+                tile = tile.Trim();
+                /*foreach (var word in tile)
+                {
+                    System.Console.WriteLine($"<{word}>");
+                }*/
+                for (int i = 1; i <= tile.Length; i += 2)
+                {
+                    tile = tile.Insert(i, " ");
+                }
+
+                string[] tile2 = tile.Split(' ');
+                Array.Sort(tile2, string.CompareOrdinal);
+                string tile3 = string.Concat(tile2);
+                message = message.Remove(8);
+                message += tile3;
+
                 return message;
 
-                //Console.WriteLine(S);
             }
             catch
             {
@@ -57,5 +82,26 @@ namespace Client
             }
         }
 
+        // 建立字典
+        private void CreateDictionary()
+        {
+            //黑
+            _dictionary.Add("A", "將");
+            _dictionary.Add("B", "士");
+            _dictionary.Add("C", "象");
+            _dictionary.Add("D", "車");
+            _dictionary.Add("E", "馬");
+            _dictionary.Add("F", "包");
+            _dictionary.Add("G", "卒");
+
+            //紅
+            _dictionary.Add("a", "帥");
+            _dictionary.Add("b", "仕");
+            _dictionary.Add("c", "相");
+            _dictionary.Add("d", "俥");
+            _dictionary.Add("e", "傌");
+            _dictionary.Add("f", "炮");
+            _dictionary.Add("g", "兵");
+        }
     }
 }
