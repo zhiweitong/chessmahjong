@@ -2,24 +2,28 @@
 using System.Net.Sockets;
 using System.Text;
 using System.Net;
+using System.Collections.Generic;
 
 namespace Server
 {
     class Program
     {
         private Socket[] _sockets;
+        private List<string> _allCard = new List<string>();
 
         static void Main(string[] args)
         {
             Console.WriteLine("Server啟動");
             Program program = new Program();
 
+            program.CreateCard();//建立牌庫
+
             Console.WriteLine("等待連線...四人加入後自動開始");
             program.Listen();
             Console.WriteLine("遊戲開始");
 
             //遊戲開始
-
+            program.Start();//發牌
             Console.ReadKey();
         }
 
@@ -70,7 +74,7 @@ namespace Server
                         try
                         {
                             //會停在這直到有 Client 端連上線
-                            _sockets[0].Accept();
+                            _sockets[0] = _sockets[0].Accept();
                             Console.WriteLine("第4個人加入");
                             return;
                         }
@@ -98,7 +102,7 @@ namespace Server
             }
         }
 
-        // Server傳送資料(message)給所有Client
+        // 廣播-Server傳送資料(message)給所有Client
         private void SendAll(string message)
         {
             for (int i = 1; i < _sockets.Length; i++)
@@ -116,5 +120,96 @@ namespace Server
                 }
             }
         }
+
+        //建立牌庫
+        private void CreateCard()
+        {
+            _allCard.Clear();
+
+            _allCard.Add("A");
+            _allCard.Add("B");
+            _allCard.Add("B");
+            _allCard.Add("C");
+            _allCard.Add("C");
+            _allCard.Add("D");
+            _allCard.Add("D");
+            _allCard.Add("E");
+            _allCard.Add("E");
+            _allCard.Add("F");
+            _allCard.Add("F");
+            _allCard.Add("G");
+            _allCard.Add("G");
+            _allCard.Add("G");
+            _allCard.Add("G");
+            _allCard.Add("G");
+
+            _allCard.Add("a");
+            _allCard.Add("b");
+            _allCard.Add("b");
+            _allCard.Add("c");
+            _allCard.Add("c");
+            _allCard.Add("d");
+            _allCard.Add("d");
+            _allCard.Add("e");
+            _allCard.Add("e");
+            _allCard.Add("f");
+            _allCard.Add("f");
+            _allCard.Add("g");
+            _allCard.Add("g");
+            _allCard.Add("g");
+            _allCard.Add("g");
+            _allCard.Add("g");
+        }
+
+        //發牌(莊家五張，閒家四張)
+        private void Start()
+        {
+            Random rnd = new Random();
+
+            for (int player = 1; player <= 3; player++)
+            {
+                //抽閒家的牌(四張)
+                string four = "";
+                for (int i = 0; i < 4; i++)
+                {
+                    int index = rnd.Next(0, _allCard.Count);
+                    four = four + _allCard[index];
+                    _allCard.RemoveAt(index);
+                }
+
+                //傳送訊息給閒家
+                try
+                {
+                    _sockets[player].Send(Encoding.ASCII.GetBytes(string.Format("Start_{0}_{1}", (player + 1), four)));
+                }
+                catch
+                {
+                    Console.WriteLine("send error");
+                }
+            }
+
+            Console.WriteLine("發牌完成");
+
+            //抽莊家的牌
+            string five = "";
+            for (int i = 0; i < 5; i++)
+            {
+                int index = rnd.Next(0, _allCard.Count);
+                five = five + _allCard[index];
+                _allCard.RemoveAt(index);
+            }
+
+            //傳送訊息給莊家(0)
+            try
+            {
+                _sockets[0].Send(Encoding.ASCII.GetBytes(string.Format("Start_{0}_{1}", "1", five)));
+            }
+            catch
+            {
+                Console.WriteLine("send error");
+            }
+
+        }
+
     }
 }
