@@ -10,6 +10,10 @@ namespace Client
     {
         private Socket _socket;
         private Dictionary<string, string> _dictionary = new Dictionary<string, string>();
+        private string[] _handCard;
+        private int _position = -1;
+        private int _playerNow = 1;
+        private bool _gameOver = false;
 
         static void Main(string[] args)
         {
@@ -17,9 +21,11 @@ namespace Client
             program.CreateDictionary(); //建立字典
 
             program.Connect();
-            
 
-            Console.WriteLine(program.Receive());
+            while (!program._gameOver)
+                program.Assignment(program.Receive());
+
+            Console.WriteLine("遊戲結束");
 
             Console.ReadKey();
         }
@@ -47,33 +53,13 @@ namespace Client
         {
             try
             {
-                long IntAcceptData;
-
                 byte[] clientData = new byte[20];
 
                 // 程式會被 hand 在此, 等待接收來自 Server 端傳來的資料
-                IntAcceptData = _socket.Receive(clientData);
-
+                long IntAcceptData = _socket.Receive(clientData);
                 string message = Encoding.Default.GetString(clientData);
-                string tile = message.Substring(8);
-                tile = tile.Trim();
-                /*foreach (var word in tile)
-                {
-                    System.Console.WriteLine($"<{word}>");
-                }*/
-                for (int i = 1; i <= tile.Length; i += 2)
-                {
-                    tile = tile.Insert(i, " ");
-                }
-
-                string[] tile2 = tile.Split(' ');
-                Array.Sort(tile2, string.CompareOrdinal);
-                string tile3 = string.Concat(tile2);
-                message = message.Remove(8);
-                message += tile3;
 
                 return message;
-
             }
             catch
             {
@@ -103,5 +89,93 @@ namespace Client
             _dictionary.Add("f", "炮");
             _dictionary.Add("g", "兵");
         }
+
+        //取得開局手牌
+        private void GetHandCard(string msg)
+        {
+            _handCard = msg.Split('.');
+            Array.Resize(ref _handCard, _handCard.Length - 1);
+
+            Array.Sort(_handCard, string.CompareOrdinal);
+
+            Console.WriteLine("\n遊戲開始!\n");
+
+            if (_position == 1)
+            {
+                Console.WriteLine("你是玩家 1 號，是莊家");
+
+                //判斷天胡
+
+                _socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_false", (_position - 1))));//沒有天胡
+
+                Console.Write("你的手牌: ");
+                foreach (string card in _handCard)
+                {
+                    Console.Write("{0} ", card);
+                }
+                Console.WriteLine("");
+            }
+            else
+            {
+                Console.WriteLine("你是玩家 {0} 號，是閒家", _position);
+
+                Console.Write("你的手牌: ");
+                foreach (string card in _handCard)
+                {
+                    Console.Write("{0} ", card);
+                }
+                Console.WriteLine("");
+            }
+        }
+
+        //出一張牌
+        private void Discard()
+        {
+            Console.WriteLine("          0 1 2 3 4");
+            Console.WriteLine("請出牌(輸入數字) :");
+            int input = Convert.ToInt32(Console.ReadLine());
+            _socket.Send(Encoding.ASCII.GetBytes(string.Format("New_{0}_{1}", (_position - 1),_handCard[input])));
+        }
+
+        //辨識訊息
+        private void Assignment(string msg)
+        {
+            string[] str = msg.Split('_');
+
+            switch (str[0])
+            {
+                case "Start":  //開局
+                    _position = Convert.ToInt32(str[1]);
+                    GetHandCard(str[2]);
+                    break;
+
+                case "New": //有人出牌的廣播
+                    Console.WriteLine("玩家 {0} 打出 {1}", str[1], str[2]);
+                    break;
+
+                case "Check": //是否胡牌的通知
+                    if (str[1].Equals("true"))
+                    {
+                        Console.WriteLine("玩家{0}胡牌了", str[2]);
+                        _gameOver = true;
+                    }
+                    else
+                    {
+                        if (_position == _playerNow)
+                            Discard();
+                    }
+                    break;
+
+                case "One": //抽到一張牌
+
+                    break;
+
+                case "Over": //流局
+
+                    break;
+            }
+        }
+
     }
 }
+

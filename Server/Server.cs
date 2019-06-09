@@ -10,6 +10,7 @@ namespace Server
     {
         private Socket[] _sockets;
         private List<string> _allCard = new List<string>();
+        int _player = 0;
 
         static void Main(string[] args)
         {
@@ -20,11 +21,32 @@ namespace Server
 
             Console.WriteLine("等待連線...四人加入後自動開始");
             program.Listen();
+
+
             Console.WriteLine("遊戲開始");
 
-            //遊戲開始
-            program.Start();//發牌
+            program.Game();
+
             Console.ReadKey();
+        }
+
+        private void Game()
+        {
+            Start();//發牌
+
+            //看有沒有天胡
+            if (ReceiveOne(0).Split('_')[2].Equals("true"))//天胡
+            {
+                SendAll("Check_true_0"); //廣播胡牌
+                return;
+            }
+            else
+                SendAll("Check_false"); //廣播沒胡牌
+
+            string msg = ReceiveOne(0);
+            int k = Convert.ToInt32(msg.Split('_')[1]);
+            Console.WriteLine("玩家 {0} 打出{1}", k + 1, msg.Split('_')[2]);
+            SendAll(string.Format("New_{0}_{1}", k + 1, msg.Split('_')[2]));//廣播出牌
         }
 
         // 開socket
@@ -105,7 +127,7 @@ namespace Server
         // 廣播-Server傳送資料(message)給所有Client
         private void SendAll(string message)
         {
-            for (int i = 1; i < _sockets.Length; i++)
+            for (int i = 0; i < _sockets.Length; i++)
             {
                 if (_sockets[i] != null && _sockets[i].Connected == true)
                 {
@@ -166,14 +188,36 @@ namespace Server
         {
             Random rnd = new Random();
 
+            //抽莊家的牌
+            string five = "";
+            for (int i = 0; i < 5; i++)
+            {
+                int index = rnd.Next(0, _allCard.Count);
+                five = five + _allCard[index] + ".";
+                _allCard.RemoveAt(index);
+            }
+
+            //傳送訊息給莊家(0)
+            try
+            {
+                _sockets[0].Send(Encoding.ASCII.GetBytes(string.Format("Start_{0}_{1}", "1", five)));
+            }
+            catch
+            {
+                Console.WriteLine("send error");
+            }
+
+
+            //處理閒家
             for (int player = 1; player <= 3; player++)
             {
                 //抽閒家的牌(四張)
                 string four = "";
                 for (int i = 0; i < 4; i++)
+
                 {
                     int index = rnd.Next(0, _allCard.Count);
-                    four = four + _allCard[index];
+                    four = four + _allCard[index] + ".";
                     _allCard.RemoveAt(index);
                 }
 
@@ -190,26 +234,76 @@ namespace Server
 
             Console.WriteLine("發牌完成");
 
-            //抽莊家的牌
-            string five = "";
-            for (int i = 0; i < 5; i++)
-            {
-                int index = rnd.Next(0, _allCard.Count);
-                five = five + _allCard[index];
-                _allCard.RemoveAt(index);
-            }
 
-            //傳送訊息給莊家(0)
-            try
-            {
-                _sockets[0].Send(Encoding.ASCII.GetBytes(string.Format("Start_{0}_{1}", "1", five)));
-            }
-            catch
-            {
-                Console.WriteLine("send error");
-            }
 
         }
 
+        //收胡牌訊息
+        private bool CheckWin()
+        {
+            byte[] data1 = new byte[20];
+            byte[] data2 = new byte[20];
+            byte[] data3 = new byte[20];
+            byte[] data4 = new byte[20];
+
+            _sockets[0].Receive(data1);
+            _sockets[1].Receive(data2);
+            _sockets[2].Receive(data3);
+            _sockets[3].Receive(data4);
+
+            string[] msg = new string[4];
+
+            msg[0] = Encoding.Default.GetString(data1);
+            msg[1] = Encoding.Default.GetString(data2);
+            msg[2] = Encoding.Default.GetString(data3);
+            msg[3] = Encoding.Default.GetString(data4);
+
+            bool win = false;
+
+            _player++;
+            int k = _player;
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (msg[k].Split('_')[2].Equals("true"))
+                {
+                    Console.WriteLine("玩家{0}胡牌了", k);
+
+                    //廣播胡牌
+                    SendAll(string.Format("Check_true_", k));
+
+                    win = true;
+                    break;
+                }
+                else
+                {
+                    k++;
+                    if (k == 4)
+                        k = 0;
+                }
+            }
+
+            return win;
+        }
+
+        //收某一位玩家的訊息
+        private string ReceiveOne(int player)
+        {
+            try
+            {
+                byte[] clientData = new byte[20];
+
+                // 程式會被 hand 在此, 等待接收來自 Server 端傳來的資料
+                _sockets[player].Receive(clientData);
+                string message = Encoding.Default.GetString(clientData);
+
+                return message;
+            }
+            catch
+            {
+                Console.WriteLine("receive error");
+                return "error";
+            }
+        }
     }
 }
