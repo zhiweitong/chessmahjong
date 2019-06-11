@@ -10,7 +10,7 @@ namespace Server
     {
         private Socket[] _sockets;
         private List<string> _allCard = new List<string>();
-        int _player = 0;
+        int _playerNow = 0;
 
         static void Main(string[] args)
         {
@@ -32,9 +32,12 @@ namespace Server
 
         private void Game()
         {
+            string msg = "";
+            int player = -1;
+
             Start();//發牌
 
-            //看有沒有天胡
+            //看莊家有沒有天胡
             if (ReceiveOne(0).Split('_')[2].Equals("true"))//天胡
             {
                 SendAll("Check_true_0"); //廣播胡牌
@@ -43,10 +46,37 @@ namespace Server
             else
                 SendAll("Check_false"); //廣播沒胡牌
 
-            string msg = ReceiveOne(0);
-            int k = Convert.ToInt32(msg.Split('_')[1]);
-            Console.WriteLine("玩家 {0} 打出{1}", k + 1, msg.Split('_')[2]);
-            SendAll(string.Format("New_{0}_{1}", k + 1, msg.Split('_')[2]));//廣播出牌
+            while(true)
+            {
+                msg = ReceiveOne(_playerNow);//收玩家出牌訊息
+                player = Convert.ToInt32(msg.Split('_')[1]);
+                Console.WriteLine("玩家 {0} 打出{1}", player + 1, msg.Split('_')[2]);
+                SendAll(string.Format("New_{0}_{1}", player + 1, msg.Split('_')[2]));//廣播玩家出牌
+
+                if (CheckWin())//所有玩家胡牌確認
+                    return;
+                else
+                {
+                    Console.WriteLine("沒有人胡牌");
+                    SendAll("Check_false");
+                }
+
+                Console.WriteLine("現在是玩家{0}", _playerNow + 1);
+
+                msg = ReceiveOne(_playerNow);//收下家要牌(不吃)or出牌(吃)訊息
+                if (msg.Split('_')[0].Equals("Want"))
+                {
+                    SendOneCard(_playerNow);//給玩家一張牌
+
+                    msg = ReceiveOne(_playerNow);//收自摸訊息
+                    if (msg.Split('_')[2].Equals("true")) //自摸
+                    {
+                        Console.WriteLine("玩家 {0} 自摸胡牌", _playerNow + 1);
+                        SendAll(string.Format("Check_true_{0}", _playerNow + 1)); //廣播胡牌
+                        return;
+                    }
+                }
+            }
         }
 
         // 開socket
@@ -233,9 +263,18 @@ namespace Server
             }
 
             Console.WriteLine("發牌完成");
+        }
 
+        //從牌庫拿出一張牌給玩家
+        private void SendOneCard(int playerIndex)
+        {
+            Random rnd = new Random();
+            int cardIndex = rnd.Next(0, _allCard.Count);
+            string card = _allCard[cardIndex];
+            _allCard.RemoveAt(cardIndex);
 
-
+            _sockets[playerIndex].Send(Encoding.ASCII.GetBytes(string.Format("One_{0}", card))); //發一張牌
+            Console.WriteLine("發給玩家{0}一張牌{1}", playerIndex, card);
         }
 
         //收胡牌訊息
@@ -260,8 +299,9 @@ namespace Server
 
             bool win = false;
 
-            _player++;
-            int k = _player;
+            _playerNow++;//換下一位玩家了
+
+            int k = _playerNow;
 
             for (int i = 0; i < 4; i++)
             {
@@ -270,7 +310,7 @@ namespace Server
                     Console.WriteLine("玩家{0}胡牌了", k);
 
                     //廣播胡牌
-                    SendAll(string.Format("Check_true_", k));
+                    SendAll(string.Format("Check_true_{0}", k));
 
                     win = true;
                     break;
@@ -282,7 +322,6 @@ namespace Server
                         k = 0;
                 }
             }
-
             return win;
         }
 

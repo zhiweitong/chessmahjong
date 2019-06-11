@@ -11,9 +11,10 @@ namespace Client
         private Socket _socket;
         private Dictionary<string, string> _dictionary = new Dictionary<string, string>();
         private string[] _handCard;
-        private int _position = -1;
-        private int _playerNow = 1;
+        private int _position = -1; //玩家位置
+        private int _playerNow = 1; //目前玩家
         private bool _gameOver = false;
+        private string _lastCard = ""; //上一張被丟出的牌
 
         static void Main(string[] args)
         {
@@ -90,13 +91,28 @@ namespace Client
             _dictionary.Add("g", "兵");
         }
 
+        private string[] Create5CardArray(string[] four, string one)
+        {
+            string[] five = new string[5];
+
+            for (int i = 0; i < 4; i++)
+            {
+                five[i] = four[i];
+            }
+            five[4] = one;
+
+            Array.Sort(five, string.CompareOrdinal);
+
+            return five;
+        }
+
         //取得開局手牌
         private void GetHandCard(string msg)
         {
             _handCard = msg.Split('.');
             Array.Resize(ref _handCard, _handCard.Length - 1);
 
-            Array.Sort(_handCard, string.CompareOrdinal);
+            Array.Sort(_handCard, string.CompareOrdinal); ///整理牌
 
             Console.WriteLine("\n遊戲開始!\n");
 
@@ -104,22 +120,27 @@ namespace Client
             {
                 Console.WriteLine("你是玩家 1 號，是莊家");
 
-                //判斷天胡
-
-                _socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_false", (_position - 1))));//沒有天胡
-
                 Console.Write("你的手牌: ");
-                foreach (string card in _handCard)
+                foreach (string card in _handCard) //印出手牌
                 {
                     Console.Write("{0} ", card);
                 }
                 Console.WriteLine("");
+
+                //判斷天胡
+                if (WinCheck(_handCard) == true)
+                {
+                    Console.WriteLine("天胡!");
+                    _socket.Send(Encoding.ASCII.GetBytes("Check_0_true"));//天胡
+                }
+                else
+                    _socket.Send(Encoding.ASCII.GetBytes("Check_0_false"));//沒有天胡
             }
             else
             {
                 Console.WriteLine("你是玩家 {0} 號，是閒家", _position);
 
-                Console.Write("你的手牌: ");
+                Console.Write("你的手牌: "); //印出手牌
                 foreach (string card in _handCard)
                 {
                     Console.Write("{0} ", card);
@@ -132,9 +153,51 @@ namespace Client
         private void Discard()
         {
             Console.WriteLine("          0 1 2 3 4");
+
             Console.WriteLine("請出牌(輸入數字) :");
             int input = Convert.ToInt32(Console.ReadLine());
-            _socket.Send(Encoding.ASCII.GetBytes(string.Format("New_{0}_{1}", (_position - 1),_handCard[input])));
+
+            _socket.Send(Encoding.ASCII.GetBytes(string.Format("New_{0}_{1}", (_position - 1), _handCard[input])));//發送出牌訊息
+
+            //將手牌調整回四張
+            List<string> list = new List<string>(_handCard);
+            list.RemoveAt(input);
+            _handCard = list.ToArray();
+        }
+
+        //判斷胡牌
+        private bool WinCheck(string[] cards)
+        {
+            string str = "";
+
+            foreach (string card in cards)
+            {
+                str = str + card;
+            }
+
+            switch (str) //看看是否為六種胡牌牌型
+            {
+                case "ABCGG":
+                    return true;
+
+                case "abcgg":
+                    return true;
+
+                case "DEFGG":
+                    return true;
+
+                case "defgg":
+                    return true;
+
+                case "GGGgg":
+                    return true;
+
+                case "GGggg":
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         //辨識訊息
@@ -151,6 +214,18 @@ namespace Client
 
                 case "New": //有人出牌的廣播
                     Console.WriteLine("玩家 {0} 打出 {1}", str[1], str[2]);
+                    _lastCard = str[2];
+
+                    //更新目前玩家
+                    _playerNow++;
+                    if (_playerNow == 5)
+                        _playerNow = 1;
+
+                    //判斷胡牌
+                    if (WinCheck(Create5CardArray(_handCard, str[2])))
+                        _socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_true", _position + 1)));//胡牌
+                    else
+                        _socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_false", _position + 1)));//胡牌
                     break;
 
                 case "Check": //是否胡牌的通知
@@ -162,11 +237,46 @@ namespace Client
                     else
                     {
                         if (_position == _playerNow)
-                            Discard();
+                        {
+                            if (_handCard.Length == 5) //莊家首局
+                                Discard(); //出牌
+                            else
+                            {
+                                Console.WriteLine("要吃嗎? (請輸入數字) 不吃:0  吃:1");
+                                int input = Convert.ToInt32(Console.ReadLine());
+
+                                if (input == 0) //不吃
+                                    _socket.Send(Encoding.ASCII.GetBytes(string.Format("Want_{0}", _position + 1)));//要牌
+                                else //吃
+                                {
+                                    _handCard = Create5CardArray(_handCard, _lastCard); //將上加打的牌放入手牌
+                                    Discard();//出一張牌
+                                }
+                            }
+                        }
+
                     }
                     break;
 
                 case "One": //抽到一張牌
+                    Console.WriteLine("拿一張牌，拿到 {0}", str[1]);
+                    _handCard = Create5CardArray(_handCard, str[1]);
+
+                    Console.Write("你的手牌: ");
+                    foreach (string card in _handCard) //印出手牌
+                    {
+                        Console.Write("{0} ", card);
+                    }
+                    Console.WriteLine("");
+
+                    //判斷自摸胡牌
+                    if (WinCheck(Create5CardArray(_handCard, str[1])))//胡牌
+                    {
+                        Console.WriteLine("自摸!");
+                        _socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_true", _position + 1)));
+                    }
+                    else
+                        Discard();//打一張
 
                     break;
 
