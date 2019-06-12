@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Sockets;
 using System.Text;
 using System.Net;
@@ -19,10 +19,8 @@ namespace Server
 
             program.CreateCard();//建立牌庫
 
-            Console.WriteLine("等待連線...四人加入後自動開始");
             program.Listen();
-
-
+            
             Console.WriteLine("遊戲開始");
 
             program.Game();
@@ -98,10 +96,20 @@ namespace Server
             // 用 Resize 的方式動態增加 Socket 的數目
             Array.Resize(ref _sockets, 1);
 
-            _sockets[0] = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            _sockets[0].Bind(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8888));
+            Console.WriteLine("請輸入連線IP :");
+            string input = Console.ReadLine();
 
-            // 其中 LocalIP 和 SPort 分別為 string 和 int 型態, 前者為 Server 端的IP, 後者為Server 端的Port
+            try
+            {
+                _sockets[0] = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                _sockets[0].Bind(new IPEndPoint(IPAddress.Parse(input), 8888));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+            Console.WriteLine("等待連線...四人加入後自動開始");
+
             _sockets[0].Listen(5); // 進行聆聽; Listen( )為允許 Client 同時連線的最大數
             SckSWaitAccept();   // 另外寫一個函數用來分配 Client 端的 Socket
         }
@@ -330,7 +338,7 @@ namespace Server
             {
                 if (msg[k].Split('_')[2].Equals("true"))
                 {
-                    Console.WriteLine("玩家{0}胡牌了", k);
+                    Console.WriteLine("玩家{0}胡牌了", k+1);
 
                     //廣播胡牌
                     SendAll(string.Format("Check_true_{0}_", k));

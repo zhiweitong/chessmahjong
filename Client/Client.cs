@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Sockets;
 using System.Text;
 using System.Net;
@@ -45,9 +45,9 @@ namespace Client
 
                 Console.WriteLine("連線成功");
             }
-            catch
+            catch (Exception e)
             {
-                Console.WriteLine("connect error");
+                Console.WriteLine(e.ToString());
             }
 
         }
@@ -232,7 +232,7 @@ namespace Client
                 case "Check": //是否胡牌的通知
                     if (str[1].Equals("true"))
                     {
-                        Console.WriteLine("玩家{0}胡牌了", str[2]);
+                        Console.WriteLine("玩家 {0} 胡牌了", str[2]);
                         _gameOver = true;
                     }
                     else
