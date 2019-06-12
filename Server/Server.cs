@@ -65,6 +65,7 @@ namespace Server
                 if (msg.Split('_')[1].Equals("true"))
                 {
                     SendAll(string.Format("Player_{0}_getNewOne_", _playerNow + 1)); //廣播玩家摸牌
+                    Console.WriteLine("玩家 {0} 選擇摸牌", _playerNow + 1);
 
                     SendOneCard(_playerNow);//給玩家一張牌
 
@@ -76,6 +77,8 @@ namespace Server
                         SendAll(string.Format("Check_true_{0}_", _playerNow + 1)); //廣播胡牌
                         return;
                     }
+                    else
+                        Console.WriteLine("玩家 {0} 沒有自摸", _playerNow + 1);
 
                     if (_allCard.Count == 0)
                     {
@@ -86,6 +89,7 @@ namespace Server
                 else
                 {
                     SendAll(string.Format("Player_{0}_eat_", _playerNow + 1)); //廣播玩家吃牌
+                    Console.WriteLine("玩家 {0} 選擇吃牌", _playerNow + 1);
                 }
             }
         }
