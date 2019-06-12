@@ -163,6 +163,8 @@ namespace Client
             List<string> list = new List<string>(_handCard);
             list.RemoveAt(input);
             _handCard = list.ToArray();
+
+            PrintHandCard();
         }
 
         //判斷胡牌
