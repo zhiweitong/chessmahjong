@@ -148,7 +148,22 @@ namespace Client
             Console.WriteLine("           0  1  2  3  4");
 
             Console.WriteLine("請出牌(輸入數字) :");
-            int input = Convert.ToInt32(Console.ReadLine());
+
+            int input = -1;
+            while (true)
+            {
+                string inputStr = Console.ReadLine();
+                if (IsNumeric(inputStr))//是數字
+                {
+                    input = Convert.ToInt32(inputStr);
+                    if (input >= 0 || input <= 4) //檢查數字
+                        break;
+                    else
+                        Console.WriteLine("輸入錯誤，請重新輸入數字:");
+                }
+                else
+                    Console.WriteLine("輸入錯誤，請重新輸入數字:");
+            }
 
             try
             {
@@ -255,7 +270,22 @@ namespace Client
                                 PrintHandCard();
 
                                 Console.WriteLine("要吃嗎? (請輸入數字) 不吃:0  吃:1");
-                                int input = Convert.ToInt32(Console.ReadLine());
+
+                                int input = -1;
+                                while (true)
+                                {
+                                    string inputStr = Console.ReadLine();
+                                    if (IsNumeric(inputStr))//是數字
+                                    {
+                                        input = Convert.ToInt32(inputStr);
+                                        if (input == 0 || input == 1) //檢查數字
+                                            break;
+                                        else
+                                            Console.WriteLine("輸入錯誤，請重新輸入數字 (不吃:0  吃:1)");
+                                    }
+                                    else
+                                        Console.WriteLine("輸入錯誤，請重新輸入數字 (不吃:0  吃:1)");
+                                }
 
                                 if (input == 0) //不吃
                                     _socket.Send(Encoding.ASCII.GetBytes("Want_true_"));//要牌
@@ -341,12 +371,12 @@ namespace Client
             Console.WriteLine("");
         }
 
-        //判斷TextBox輸入值是否為數字
-        public static bool IsNumeric(string TextBoxValue)
+        //判斷輸入值是否為數字
+        public bool IsNumeric(string str)
         {
             try
             {
-                int i = Convert.ToInt32(TextBoxValue);
+                int i = Convert.ToInt32(str);
                 return true;
             }
             catch
