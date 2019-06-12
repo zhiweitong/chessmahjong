@@ -19,13 +19,14 @@ namespace Server
             Program program = new Program();
 
             program.Listen();
-            
-            Console.WriteLine("遊戲開始");
 
+            program.CreateDictionary(); //建立字典
+            Console.WriteLine("遊戲開始");
+            
             while (true)
             {
                 program.CreateCard();//建立牌庫
-                program.CreateDictionary(); //建立字典
+                
                 program.Game();
 
                 program.Change();
