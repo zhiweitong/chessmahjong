@@ -252,6 +252,8 @@ namespace Client
                                 Discard(); //出牌
                             else
                             {
+                                PrintHandCard();
+
                                 Console.WriteLine("要吃嗎? (請輸入數字) 不吃:0  吃:1");
                                 int input = Convert.ToInt32(Console.ReadLine());
 

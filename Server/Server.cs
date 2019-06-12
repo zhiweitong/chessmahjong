@@ -345,7 +345,7 @@ namespace Server
                     Console.WriteLine("玩家{0}胡牌了", k+1);
 
                     //廣播胡牌
-                    SendAll(string.Format("Check_true_{0}_", k));
+                    SendAll(string.Format("Check_true_{0}_", k+1));
 
                     win = true;
                     break;
