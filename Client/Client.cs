@@ -36,9 +36,12 @@ namespace Client
         {
             try
             {
+                Console.WriteLine("請輸入連線IP :");
+                string input = Console.ReadLine();
+
                 _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                _socket.Connect(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8888));
+                _socket.Connect(new IPEndPoint(IPAddress.Parse(input), 8888));
 
                 Console.WriteLine("連線成功");
             }
@@ -257,7 +260,6 @@ namespace Client
                                 }
                             }
                         }
-
                     }
                     break;
 
