@@ -264,10 +264,6 @@ namespace Client
                                     _socket.Send(Encoding.ASCII.GetBytes("Want_false_"));
 
                                     _handCard = Create5CardArray(_handCard, _lastCard); //將上加打的牌放入手牌
-
-                                    PrintHandCard();
-
-                                    Discard();//出一張牌
                                 }
                             }
                         }
@@ -303,8 +299,19 @@ namespace Client
                     break;
 
                 case "Player":
-                    if(str[2].Equals("eat"))
+                    if (str[2].Equals("eat"))
+                    {
                         Console.WriteLine("玩家 {0} 選擇吃牌", str[1]);
+
+                        string number = Convert.ToString(_position + 1);
+
+                        if (str[1].Equals(number))
+                        {
+                            PrintHandCard();
+
+                            Discard();//出一張牌
+                        }
+                    }
                     else
                         Console.WriteLine("玩家 {0} 不吃牌，摸一張", str[1]);
                     break;
@@ -323,7 +330,7 @@ namespace Client
             {
                 char[] c = card.ToCharArray();
 
-                if(c[0] >= 97 && c[0] <= 122)//小寫
+                if (c[0] >= 97 && c[0] <= 122)//小寫
                     Console.ForegroundColor = ConsoleColor.Red;
 
                 Console.Write("{0} ", _dictionary[card]);
@@ -331,6 +338,20 @@ namespace Client
 
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("");
+        }
+
+        //判斷TextBox輸入值是否為數字
+        public static bool IsNumeric(string TextBoxValue)
+        {
+            try
+            {
+                int i = Convert.ToInt32(TextBoxValue);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
