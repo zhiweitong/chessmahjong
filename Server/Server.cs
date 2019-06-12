@@ -63,6 +63,14 @@ namespace Server
                 else
                 {
                     Console.WriteLine("沒有人胡牌");
+
+                    if (_allCard.Count == 0)
+                    {
+                        SendAll("Over_"); //廣播流局
+                        Console.WriteLine("流局!");
+                        return;
+                    }
+
                     SendAll("Check_false_");
                 }
 
@@ -86,13 +94,6 @@ namespace Server
                     }
                     else
                         Console.WriteLine("玩家 {0} 沒有自摸", _playerNow + 1);
-
-                    if (_allCard.Count == 0)
-                    {
-                        SendAll("Over_"); //廣播流局
-                        Console.WriteLine("流局!");
-                        return;
-                    }
                 }
                 else
                 {
