@@ -83,6 +83,7 @@ namespace Server
                     if (_allCard.Count == 0)
                     {
                         SendAll("Over_"); //廣播流局
+                        Console.WriteLine("流局!");
                         return;
                     }
                 }

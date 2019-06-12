@@ -317,7 +317,8 @@ namespace Client
                     break;
 
                 case "Over": //流局
-
+                    Console.WriteLine("流局!");
+                    _gameOver = true;
                     break;
             }
         }
