@@ -17,15 +17,19 @@ namespace Server
             Console.WriteLine("Server啟動");
             Program program = new Program();
 
-            program.CreateCard();//建立牌庫
-
             program.Listen();
             
             Console.WriteLine("遊戲開始");
 
-            program.Game();
+            while (true)
+            {
+                program.CreateCard();//建立牌庫
+                program.Game();
 
-            Console.ReadKey();
+                program.Change();
+                Console.WriteLine("莊家換下一位，重新開始\n");
+                program._playerNow = 0;
+            }
         }
 
         private void Game()
@@ -379,6 +383,23 @@ namespace Server
                 Console.WriteLine("receiveOne error");
                 return "error";
             }
+        }
+
+        private void Change()
+        {
+            Socket[] NewSockets = new Socket[4];
+
+            NewSockets[0] = _sockets[3];
+            NewSockets[1] = _sockets[0];
+            NewSockets[2] = _sockets[1];
+            NewSockets[3] = _sockets[2];
+
+            _sockets = NewSockets;
+
+            _sockets[0].Send(Encoding.ASCII.GetBytes("1"));
+            _sockets[1].Send(Encoding.ASCII.GetBytes("2"));
+            _sockets[2].Send(Encoding.ASCII.GetBytes("3"));
+            _sockets[3].Send(Encoding.ASCII.GetBytes("4"));
         }
     }
 }

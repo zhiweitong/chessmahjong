@@ -21,14 +21,21 @@ namespace Client
             Client program = new Client();
             program.CreateDictionary(); //建立字典
 
-            program.Connect();
+            program.Connect();//連線到server
 
-            while (!program._gameOver)
-                program.Assignment(program.Receive());
+            while (true)
+            {
+                while (!program._gameOver)
+                    program.Assignment(program.Receive());
 
-            Console.WriteLine("遊戲結束");
+                Console.WriteLine("本局結束，莊家換人，開始下一場\n");
 
-            Console.ReadKey();
+                program._position = -1;
+                program._playerNow = 1;
+                program._lastCard = "";
+                program._gameOver = false;
+                program._handCard = null;
+            }
         }
 
         //與server進行連線
