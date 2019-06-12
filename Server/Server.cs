@@ -45,7 +45,7 @@ namespace Server
             //看莊家有沒有天胡
             if (ReceiveOne(0).Split('_')[2].Equals("true"))//天胡
             {
-                SendAll("Check_true_0_"); //廣播胡牌
+                SendAll("Check_true_1_"); //廣播胡牌
                 return;
             }
             else
