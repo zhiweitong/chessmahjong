@@ -150,7 +150,14 @@ namespace Client
             Console.WriteLine("請出牌(輸入數字) :");
             int input = Convert.ToInt32(Console.ReadLine());
 
-            _socket.Send(Encoding.ASCII.GetBytes(string.Format("Next_{0}_{1}_", (_position - 1), _handCard[input])));//發送出牌訊息
+            try
+            {
+                _socket.Send(Encoding.ASCII.GetBytes(string.Format("Next_{0}_{1}_", (_position - 1), _handCard[input])));//發送出牌訊息
+            }
+            catch
+            {
+                Console.WriteLine("出一張牌時發生錯誤 無法傳送");
+            }
 
             //將手牌調整回四張
             List<string> list = new List<string>(_handCard);
