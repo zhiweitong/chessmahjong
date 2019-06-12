@@ -22,11 +22,11 @@ namespace Server
 
             program.CreateDictionary(); //建立字典
             Console.WriteLine("遊戲開始");
-            
+
             while (true)
             {
                 program.CreateCard();//建立牌庫
-                
+
                 program.Game();
 
                 program.Change();
@@ -192,7 +192,7 @@ namespace Server
         {
             for (int i = 0; i < _sockets.Length; i++)
             {
-                if (_sockets[i] != null && _sockets[i].Connected == true)
+                if (_sockets[i] != null && _sockets[i].Connected == true && i != _playerNow)
                 {
                     try
                     {
@@ -203,6 +203,15 @@ namespace Server
                         Console.WriteLine("sendAll error");
                     }
                 }
+            }
+
+            try
+            {
+                _sockets[_playerNow].Send(Encoding.ASCII.GetBytes(message));
+            }
+            catch
+            {
+                Console.WriteLine("sendAll error");
             }
         }
 
@@ -337,7 +346,7 @@ namespace Server
                 Console.WriteLine("SendOneCard error");
             }
 
-            Console.WriteLine("發給玩家{0}一張牌 {1} ，牌庫剩下{2}張牌", playerIndex+1, _dictionary[card],_allCard.Count);
+            Console.WriteLine("發給玩家{0}一張牌 {1} ，牌庫剩下{2}張牌", playerIndex + 1, _dictionary[card], _allCard.Count);
         }
 
         //收胡牌訊息
@@ -372,10 +381,10 @@ namespace Server
             {
                 if (msg[k].Split('_')[2].Equals("true"))
                 {
-                    Console.WriteLine("玩家{0}胡牌了", k+1);
+                    Console.WriteLine("玩家{0}胡牌了", k + 1);
 
                     //廣播胡牌
-                    SendAll(string.Format("Check_true_{0}_", k+1));
+                    SendAll(string.Format("Check_true_{0}_", k + 1));
 
                     win = true;
                     break;
