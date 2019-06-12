@@ -395,11 +395,6 @@ namespace Server
             NewSockets[3] = _sockets[2];
 
             _sockets = NewSockets;
-
-            _sockets[0].Send(Encoding.ASCII.GetBytes("1"));
-            _sockets[1].Send(Encoding.ASCII.GetBytes("2"));
-            _sockets[2].Send(Encoding.ASCII.GetBytes("3"));
-            _sockets[3].Send(Encoding.ASCII.GetBytes("4"));
         }
     }
 }
