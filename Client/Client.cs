@@ -263,7 +263,7 @@ namespace Client
                                 {
                                     _socket.Send(Encoding.ASCII.GetBytes("Want_false_"));
 
-                                    _handCard = Create5CardArray(_handCard, _lastCard); //將上加打的牌放入手牌
+                                    _handCard = Create5CardArray(_handCard, _lastCard); //將上家打的牌放入手牌 
                                 }
                             }
                         }
@@ -303,7 +303,7 @@ namespace Client
                     {
                         Console.WriteLine("玩家 {0} 選擇吃牌", str[1]);
 
-                        string number = Convert.ToString(_position + 1);
+                        string number = Convert.ToString(_position);
 
                         if (str[1].Equals(number))
                         {
