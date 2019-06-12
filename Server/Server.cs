@@ -307,7 +307,7 @@ namespace Server
                 Console.WriteLine("SendOneCard error");
             }
 
-            Console.WriteLine("發給玩家{0}一張牌{1}，牌庫剩下{2}張牌", playerIndex, card,_allCard.Count);
+            Console.WriteLine("發給玩家{0}一張牌{1}，牌庫剩下{2}張牌", playerIndex+1, card,_allCard.Count);
         }
 
         //收胡牌訊息
