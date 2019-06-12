@@ -10,6 +10,7 @@ namespace Server
     {
         private Socket[] _sockets;
         private List<string> _allCard = new List<string>();
+        private Dictionary<string, string> _dictionary = new Dictionary<string, string>();
         int _playerNow = 0;
 
         static void Main(string[] args)
@@ -24,6 +25,7 @@ namespace Server
             while (true)
             {
                 program.CreateCard();//建立牌庫
+                program.CreateDictionary(); //建立字典
                 program.Game();
 
                 program.Change();
@@ -52,7 +54,7 @@ namespace Server
             {
                 msg = ReceiveOne(_playerNow);//收玩家出牌訊息
                 player = Convert.ToInt32(msg.Split('_')[1]);
-                Console.WriteLine("玩家 {0} 打出{1}", player + 1, msg.Split('_')[2]);
+                Console.WriteLine("玩家 {0} 打出 {1} ", player + 1, _dictionary[msg.Split('_')[2]]);
                 SendAll(string.Format("New_{0}_{1}_", player + 1, msg.Split('_')[2]));//廣播玩家出牌
 
                 if (CheckWin())//所有玩家胡牌確認
@@ -203,6 +205,28 @@ namespace Server
             }
         }
 
+        // 建立字典
+        private void CreateDictionary()
+        {
+            //黑
+            _dictionary.Add("A", "將");
+            _dictionary.Add("B", "士");
+            _dictionary.Add("C", "象");
+            _dictionary.Add("D", "車");
+            _dictionary.Add("E", "馬");
+            _dictionary.Add("F", "包");
+            _dictionary.Add("G", "卒");
+
+            //紅
+            _dictionary.Add("a", "帥");
+            _dictionary.Add("b", "仕");
+            _dictionary.Add("c", "相");
+            _dictionary.Add("d", "硨");
+            _dictionary.Add("e", "傌");
+            _dictionary.Add("f", "炮");
+            _dictionary.Add("g", "兵");
+        }
+
         //建立牌庫
         private void CreateCard()
         {
@@ -312,7 +336,7 @@ namespace Server
                 Console.WriteLine("SendOneCard error");
             }
 
-            Console.WriteLine("發給玩家{0}一張牌{1}，牌庫剩下{2}張牌", playerIndex+1, card,_allCard.Count);
+            Console.WriteLine("發給玩家{0}一張牌 {1} ，牌庫剩下{2}張牌", playerIndex+1, _dictionary[card],_allCard.Count);
         }
 
         //收胡牌訊息
