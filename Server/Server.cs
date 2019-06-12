@@ -40,41 +40,54 @@ namespace Server
             //看莊家有沒有天胡
             if (ReceiveOne(0).Split('_')[2].Equals("true"))//天胡
             {
-                SendAll("Check_true_0"); //廣播胡牌
+                SendAll("Check_true_0_"); //廣播胡牌
                 return;
             }
             else
-                SendAll("Check_false"); //廣播沒胡牌
+                SendAll("Check_false_"); //廣播沒胡牌
 
-            while(true)
+            while (true)
             {
                 msg = ReceiveOne(_playerNow);//收玩家出牌訊息
                 player = Convert.ToInt32(msg.Split('_')[1]);
                 Console.WriteLine("玩家 {0} 打出{1}", player + 1, msg.Split('_')[2]);
-                SendAll(string.Format("New_{0}_{1}", player + 1, msg.Split('_')[2]));//廣播玩家出牌
+                SendAll(string.Format("New_{0}_{1}_", player + 1, msg.Split('_')[2]));//廣播玩家出牌
 
                 if (CheckWin())//所有玩家胡牌確認
                     return;
                 else
                 {
                     Console.WriteLine("沒有人胡牌");
-                    SendAll("Check_false");
+                    SendAll("Check_false_");
                 }
 
                 Console.WriteLine("現在是玩家{0}", _playerNow + 1);
 
                 msg = ReceiveOne(_playerNow);//收下家要牌(不吃)or出牌(吃)訊息
-                if (msg.Split('_')[0].Equals("Want"))
+                if (msg.Split('_')[1].Equals("true"))
                 {
+                    SendAll(string.Format("Player_{0}_getNewOne_", _playerNow + 1)); //廣播玩家摸牌
+
                     SendOneCard(_playerNow);//給玩家一張牌
 
                     msg = ReceiveOne(_playerNow);//收自摸訊息
+
                     if (msg.Split('_')[2].Equals("true")) //自摸
                     {
                         Console.WriteLine("玩家 {0} 自摸胡牌", _playerNow + 1);
-                        SendAll(string.Format("Check_true_{0}", _playerNow + 1)); //廣播胡牌
+                        SendAll(string.Format("Check_true_{0}_", _playerNow + 1)); //廣播胡牌
                         return;
                     }
+
+                    if (_allCard.Count == 0)
+                    {
+                        SendAll("Over_"); //廣播流局
+                        return;
+                    }
+                }
+                else
+                {
+                    SendAll(string.Format("Player_{0}_eat_", _playerNow + 1)); //廣播玩家吃牌
                 }
             }
         }
@@ -167,7 +180,7 @@ namespace Server
                     }
                     catch
                     {
-                        Console.WriteLine("send error");
+                        Console.WriteLine("sendAll error");
                     }
                 }
             }
@@ -273,8 +286,16 @@ namespace Server
             string card = _allCard[cardIndex];
             _allCard.RemoveAt(cardIndex);
 
-            _sockets[playerIndex].Send(Encoding.ASCII.GetBytes(string.Format("One_{0}", card))); //發一張牌
-            Console.WriteLine("發給玩家{0}一張牌{1}", playerIndex, card);
+            try
+            {
+                _sockets[playerIndex].Send(Encoding.ASCII.GetBytes(string.Format("One_{0}_", card))); //發一張牌
+            }
+            catch
+            {
+                Console.WriteLine("SendOneCard error");
+            }
+
+            Console.WriteLine("發給玩家{0}一張牌{1}，牌庫剩下{2}張牌", playerIndex, card,_allCard.Count);
         }
 
         //收胡牌訊息
@@ -300,6 +321,8 @@ namespace Server
             bool win = false;
 
             _playerNow++;//換下一位玩家了
+            if (_playerNow == 4)
+                _playerNow = 0;
 
             int k = _playerNow;
 
@@ -310,7 +333,7 @@ namespace Server
                     Console.WriteLine("玩家{0}胡牌了", k);
 
                     //廣播胡牌
-                    SendAll(string.Format("Check_true_{0}", k));
+                    SendAll(string.Format("Check_true_{0}_", k));
 
                     win = true;
                     break;
@@ -340,7 +363,7 @@ namespace Server
             }
             catch
             {
-                Console.WriteLine("receive error");
+                Console.WriteLine("receiveOne error");
                 return "error";
             }
         }
