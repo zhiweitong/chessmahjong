@@ -282,27 +282,7 @@ namespace Server
         private void Start()
         {
             Random rnd = new Random();
-
-            //抽莊家的牌
-            string five = "";
-            for (int i = 0; i < 5; i++)
-            {
-                int index = rnd.Next(0, _allCard.Count);
-                five = five + _allCard[index] + ".";
-                _allCard.RemoveAt(index);
-            }
-
-            //傳送訊息給莊家(0)
-            try
-            {
-                _sockets[0].Send(Encoding.ASCII.GetBytes(string.Format("Start_{0}_{1}", "1", five)));
-            }
-            catch
-            {
-                Console.WriteLine("send error");
-            }
-
-
+           
             //處理閒家
             for (int player = 1; player <= 3; player++)
             {
@@ -325,6 +305,25 @@ namespace Server
                 {
                     Console.WriteLine("send error");
                 }
+            }
+
+            //抽莊家的牌
+            string five = "";
+            for (int i = 0; i < 5; i++)
+            {
+                int index = rnd.Next(0, _allCard.Count);
+                five = five + _allCard[index] + ".";
+                _allCard.RemoveAt(index);
+            }
+
+            //傳送訊息給莊家(0)
+            try
+            {
+                _sockets[0].Send(Encoding.ASCII.GetBytes(string.Format("Start_{0}_{1}", "1", five)));
+            }
+            catch
+            {
+                Console.WriteLine("send error");
             }
 
             Console.WriteLine("發牌完成");

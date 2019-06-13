@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Net;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Client
 {
@@ -57,6 +58,16 @@ namespace Client
                 Console.WriteLine(e.ToString());
             }
 
+        }
+
+        private void Send(string msg)
+        {
+            ArrayList list = new ArrayList();
+            list.Add(_socket);
+
+            Socket.Select(null, list, null, -1);
+
+            ((Socket)list[list.Count - 1]).Send(Encoding.ASCII.GetBytes(msg));
         }
 
         //取得Server送來的訊息
@@ -136,10 +147,13 @@ namespace Client
                 if (WinCheck(_handCard) == true)
                 {
                     Console.WriteLine("天胡!");
-                    _socket.Send(Encoding.ASCII.GetBytes("Check_0_true_"));//天胡
+                    Send("Check_0_true_");
+                    //_socket.Send(Encoding.ASCII.GetBytes("Check_0_true_"));//天胡
                 }
                 else
-                    _socket.Send(Encoding.ASCII.GetBytes("Check_0_false_"));//沒有天胡
+                    Send("Check_0_false_");
+
+                //_socket.Send(Encoding.ASCII.GetBytes("Check_0_false_"));//沒有天胡
             }
             else
             {
@@ -174,7 +188,9 @@ namespace Client
 
             try
             {
-                _socket.Send(Encoding.ASCII.GetBytes(string.Format("Next_{0}_{1}_", (_position - 1), _handCard[input])));//發送出牌訊息
+                Send(string.Format("Next_{0}_{1}_", (_position - 1), _handCard[input]));
+
+                //_socket.Send(Encoding.ASCII.GetBytes(string.Format("Next_{0}_{1}_", (_position - 1), _handCard[input])));//發送出牌訊息
             }
             catch
             {
@@ -255,9 +271,11 @@ namespace Client
 
                     //判斷胡牌
                     if (WinCheck(Create5CardArray(_handCard, str[2])))
-                        _socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_true_", _position + 1)));//胡牌
+                        Send(string.Format("Check_{0}_true_", _position + 1));
+                    //_socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_true_", _position + 1)));//胡牌
                     else
-                        _socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_false_", _position + 1)));
+                        Send(string.Format("Check_{0}_false_", _position + 1));
+                        //_socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_false_", _position + 1)));
                     break;
 
                 case "Check": //是否胡牌的通知
@@ -295,10 +313,12 @@ namespace Client
                                 }
 
                                 if (input == 0) //不吃
-                                    _socket.Send(Encoding.ASCII.GetBytes("Want_true_"));//要牌
+                                    Send("Want_true_");
+                                //_socket.Send(Encoding.ASCII.GetBytes("Want_true_"));//要牌
                                 else //吃
                                 {
-                                    _socket.Send(Encoding.ASCII.GetBytes("Want_false_"));
+                                    //_socket.Send(Encoding.ASCII.GetBytes("Want_false_"));
+                                    Send("Want_false_");
 
                                     _handCard = Create5CardArray(_handCard, _lastCard); //將上家打的牌放入手牌 
                                 }
@@ -325,11 +345,13 @@ namespace Client
                     if (WinCheck(Create5CardArray(_handCard, str[1])))//胡牌
                     {
                         Console.WriteLine("自摸!");
-                        _socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_true_", _position + 1)));
+                        //_socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_true_", _position + 1)));
+                        Send(string.Format("Check_{0}_true_", _position + 1));
                     }
                     else
                     {
-                        _socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_flase_", _position + 1)));
+                        //_socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_flase_", _position + 1)));
+                        Send(string.Format("Check_{0}_flase_", _position + 1));
                         Discard();//打一張
                     }
 
