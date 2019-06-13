@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Net;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Server
 {
@@ -193,26 +194,10 @@ namespace Server
         {
             for (int i = 0; i < _sockets.Length; i++)
             {
-                if (_sockets[i] != null && _sockets[i].Connected == true && i != _playerNow)
+                if (_sockets[i] != null && _sockets[i].Connected == true)
                 {
-                    try
-                    {
-                        _sockets[i].Send(Encoding.ASCII.GetBytes(message));
-                    }
-                    catch
-                    {
-                        Console.WriteLine("sendAll error");
-                    }
+                    Send(_sockets[i], message);
                 }
-            }
-
-            try
-            {
-                _sockets[_playerNow].Send(Encoding.ASCII.GetBytes(message));
-            }
-            catch
-            {
-                Console.WriteLine("sendAll error");
             }
         }
 
@@ -297,14 +282,8 @@ namespace Server
                 }
 
                 //傳送訊息給閒家
-                try
-                {
-                    _sockets[player].Send(Encoding.ASCII.GetBytes(string.Format("Start_{0}_{1}", (player + 1), four)));
-                }
-                catch
-                {
-                    Console.WriteLine("send error");
-                }
+                Send(_sockets[player], string.Format("Start_{0}_{1}", (player + 1), four));
+
             }
 
             //抽莊家的牌
@@ -317,14 +296,7 @@ namespace Server
             }
 
             //傳送訊息給莊家(0)
-            try
-            {
-                _sockets[0].Send(Encoding.ASCII.GetBytes(string.Format("Start_{0}_{1}", "1", five)));
-            }
-            catch
-            {
-                Console.WriteLine("send error");
-            }
+            Send(_sockets[0], string.Format("Start_{0}_{1}", "1", five));
 
             Console.WriteLine("發牌完成");
         }
@@ -337,14 +309,7 @@ namespace Server
             string card = _allCard[cardIndex];
             _allCard.RemoveAt(cardIndex);
 
-            try
-            {
-                _sockets[playerIndex].Send(Encoding.ASCII.GetBytes(string.Format("One_{0}_", card))); //發一張牌
-            }
-            catch
-            {
-                Console.WriteLine("SendOneCard error");
-            }
+            Send(_sockets[playerIndex], string.Format("One_{0}_", card));//發一張牌
 
             Console.WriteLine("發給玩家{0}一張牌 {1} ，牌庫剩下{2}張牌", playerIndex + 1, _dictionary[card], _allCard.Count);
         }
@@ -429,6 +394,16 @@ namespace Server
             NewSockets[3] = _sockets[2];
 
             _sockets = NewSockets;
+        }
+
+        private void Send(Socket sock,string msg)
+        {
+            ArrayList list = new ArrayList();
+            list.Add(sock);
+
+            Socket.Select(null, list, null, -1);
+
+            ((Socket)list[list.Count - 1]).Send(Encoding.ASCII.GetBytes(msg));
         }
     }
 }
