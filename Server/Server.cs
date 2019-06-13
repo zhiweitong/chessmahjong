@@ -12,7 +12,7 @@ namespace Server
         private Socket[] _sockets;
         private List<string> _allCard = new List<string>();
         private Dictionary<string, string> _dictionary = new Dictionary<string, string>();
-        int _playerNow = 0;
+        int _playerNow = 0;//目前玩家(數字+1)
 
         static void Main(string[] args)
         {
@@ -65,7 +65,7 @@ namespace Server
                 {
                     Console.WriteLine("沒有人胡牌");
 
-                    if (_allCard.Count == 0)
+                    if (_allCard.Count == 0)//牌庫沒牌
                     {
                         SendAll("Over_"); //廣播流局
                         Console.WriteLine("流局!");
@@ -217,7 +217,7 @@ namespace Server
             _dictionary.Add("a", "帥");
             _dictionary.Add("b", "仕");
             _dictionary.Add("c", "相");
-            _dictionary.Add("d", "硨");
+            _dictionary.Add("d", "硨");//因"俥"字在CMD為亂碼，故用"硨"替代
             _dictionary.Add("e", "傌");
             _dictionary.Add("f", "炮");
             _dictionary.Add("g", "兵");
@@ -383,7 +383,7 @@ namespace Server
                 return "error";
             }
         }
-
+        //莊家及閒家換人
         private void Change()
         {
             Socket[] NewSockets = new Socket[4];
@@ -395,7 +395,7 @@ namespace Server
 
             _sockets = NewSockets;
         }
-
+        //傳送訊息
         private void Send(Socket sock,string msg)
         {
             ArrayList list = new ArrayList();

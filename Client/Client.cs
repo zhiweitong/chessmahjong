@@ -59,7 +59,7 @@ namespace Client
             }
 
         }
-
+        //傳送訊息
         private void Send(string msg)
         {
             ArrayList list = new ArrayList();
@@ -106,12 +106,12 @@ namespace Client
             _dictionary.Add("a", "帥");
             _dictionary.Add("b", "仕");
             _dictionary.Add("c", "相");
-            _dictionary.Add("d", "硨");
+            _dictionary.Add("d", "硨");//因"俥"字在CMD為亂碼，故用"硨"替代
             _dictionary.Add("e", "傌");
             _dictionary.Add("f", "炮");
             _dictionary.Add("g", "兵");
         }
-
+        //創建手牌字串陣列
         private string[] Create5CardArray(string[] four, string one)
         {
             string[] five = new string[5];
@@ -217,22 +217,22 @@ namespace Client
 
             switch (str) //看看是否為六種胡牌牌型
             {
-                case "ABCGG":
+                case "ABCGG"://將士象卒卒
                     return true;
 
-                case "abcgg":
+                case "abcgg"://帥仕相兵兵
                     return true;
 
-                case "DEFGG":
+                case "DEFGG"://車馬包卒卒
                     return true;
 
-                case "defgg":
+                case "defgg"://俥傌炮兵兵
                     return true;
 
-                case "GGGgg":
+                case "GGGgg"://卒卒卒兵兵
                     return true;
 
-                case "GGggg":
+                case "GGggg"://卒卒兵兵兵
                     return true;
 
                 default:
@@ -272,7 +272,7 @@ namespace Client
                     //判斷胡牌
                     if (WinCheck(Create5CardArray(_handCard, str[2])))
                         Send(string.Format("Check_{0}_true_", _position + 1));
-                    //_socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_true_", _position + 1)));//胡牌
+                        //_socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_true_", _position + 1)));//胡牌
                     else
                         Send(string.Format("Check_{0}_false_", _position + 1));
                         //_socket.Send(Encoding.ASCII.GetBytes(string.Format("Check_{0}_false_", _position + 1)));
